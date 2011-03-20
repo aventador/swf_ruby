@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #  vim: set fileencoding=utf-8 filetype=ruby ts=2 : 
-# SWF中のLossless(DefineBitsLossless)イメージを差し替える.
+# SWF中のLossless(DefineBitsLossless2)イメージを差し替える.
 require 'swf_ruby'
 
 if ARGV.size != 3
@@ -12,7 +12,7 @@ swf = File.open(ARGV[0], "rb").read
 st = SwfRuby::SwfTamperer.new
 image = File.open(ARGV[2], "rb").read
 repl_targets = [
-  SwfRuby::LosslessReplaceTarget.new(ARGV[1].to_i, image)
+  SwfRuby::Lossless2ReplaceTarget.new(ARGV[1].to_i, image)
 ]
 
 print st.replace(swf, repl_targets)
