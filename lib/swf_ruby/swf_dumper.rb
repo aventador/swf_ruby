@@ -40,5 +40,55 @@ module SwfRuby
       end
       self
     end
+
+    def show
+      self.tags.each_with_index do |tag, i|
+        out_print "#{SwfRuby::Swf::TAG_TYPE[tag.code]}, offset: #{self.tags_addresses[i]}, length: #{tag.length}\n"
+        if tag.code == 39
+          # DefineSprite
+          sd = SwfRuby::SpriteDumper.new
+          sd.dump(tag)
+          out_print "  Sprite ID: #{sd.sprite_id}, Frame Count: #{sd.frame_count}\n"
+          sd.tags.each_with_index do |tag2, k|
+            out_print "    #{SwfRuby::Swf::TAG_TYPE[tag2.code]}, offset: #{sd.tags_addresses[k]}, length: #{tag2.length}\n"
+            if tag2.code == 12
+              # DoAction
+              dad = SwfRuby::DoActionDumper.new
+              dad.dump(self.swf[self.tags_addresses[i] + sd.tags_addresses[k], tag2.length])
+              dad.actions.each_with_index do |ar, l|
+                out_print "      #{SwfRuby::Swf::ACTION_RECORDS[ar.code]}, offset: #{dad.actions_addresses[l]}, length: #{ar.length}\n"
+                if ar.code == 150
+                  # ActionPush
+                  ap = SwfRuby::Swf::ActionPush.new(ar)
+                  out_print "       type: #{ap.data_type}, offset: #{dad.actions_addresses[l]}, data: #{ap.data}\n"
+                end
+              end
+            end
+          end
+        end
+        if tag.code == 12
+          # DoAction
+          dad = SwfRuby::DoActionDumper.new
+          dad.dump(self.swf[self.tags_addresses[i], tag.length])
+          dad.actions.each_with_index do |ar, j|
+            out_print "  #{SwfRuby::Swf::ACTION_RECORDS[ar.code]}, offset: #{dad.actions_addresses[j]}, length: #{ar.length}\n"
+            if ar.code == 150
+              # ActionPush
+              ap = SwfRuby::Swf::ActionPush.new(ar)
+              out_print "    type: #{ap.data_type}, offset: #{dad.actions_addresses[j]}, data: #{ap.data}\n"
+            end
+          end
+        end
+      end
+
+      out_print "\n" 
+    end
+
+    private
+    # UTF-8で出力
+    def out_print(str) 
+      str = str.force_encoding("Windows-31J").encode("UTF-8") if str.respond_to? :force_encoding
+      print str 
+    end
   end
 end
