@@ -24,7 +24,7 @@ module SwfRuby
             colormap << pixel
             data << [colormap.length-1].pack("C")
           end
-          if (i+1) % image.columns == 0
+          if (i+1) % image.rows == 0
             # padding
             data += [0].pack("C") * (4-image.columns&3)
           end
